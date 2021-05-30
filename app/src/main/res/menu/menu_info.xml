@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/iInfo"
+        android:title="Thông tin"/>
+    <item android:id="@+id/iClose"
+        android:title="Đóng"/>
+</menu>
