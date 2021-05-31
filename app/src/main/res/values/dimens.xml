@@ -4,4 +4,8 @@
     <dimen name="activity_vertical_margin">16dp</dimen>
     <dimen name="button_width_nomal">110dp</dimen>
     <dimen name="button_width_large">150dp</dimen>
+    <dimen name="padding_top_normal">16dp</dimen>
+
+    <dimen name="text_size_primary">18sp</dimen>
+
 </resources>

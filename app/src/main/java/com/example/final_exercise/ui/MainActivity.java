@@ -1,19 +1,22 @@
 package com.example.final_exercise.ui;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.example.final_exercise.R;
 import com.example.final_exercise.databinding.ActivityMainBinding;
 import com.example.final_exercise.model.Mission;
+import com.example.final_exercise.ui.auth.ProfileFragment;
 import com.example.final_exercise.ui.todo.NewMissionActivity;
+import com.example.final_exercise.ui.todo.TodoFragment;
 import com.example.final_exercise.ui.todo.Todo_Adapter;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -23,25 +26,23 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentStatePagerAdapter;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-
-import java.util.ArrayList;
-import java.util.List;
+import androidx.viewpager.widget.ViewPager;
 
 public class MainActivity extends AppCompatActivity {
-    private FirebaseUser user;
-    private FirebaseDatabase database;
-    private DatabaseReference myRef;
     private ActivityMainBinding binding;
-    List<Mission> myTodos;
-    private Todo_Adapter adapter;
+    private BottomNavigationView navigationView;
+    private ViewPagerAdapter adapter;
 
     @Override
     protected void onStart() {
         super.onStart();
-
     }
 
     @Override
@@ -50,78 +51,76 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
-        setOnClickAdd();
-        getInformation();
-        binding.todoListView.setLayoutManager(new LinearLayoutManager(this));
-        database = FirebaseDatabase.getInstance("https://android-excersice-default-rtdb.asia-southeast1.firebasedatabase.app/");
-        myRef = database.getReference().child("my-todo-" + user.getUid());
-        myRef.addValueEventListener(new ValueEventListener() {
+        navigationView = findViewById(R.id.navigation);
+        adapter = new ViewPagerAdapter(getSupportFragmentManager(),
+                2);
+        binding.viewPager.setAdapter(adapter);
+        binding.viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                myTodos = new ArrayList<Mission>();
-                for (DataSnapshot item : snapshot.getChildren()) {
-                    Mission myTodo = item.getValue(Mission.class);
-                    Log.d("title ", myTodo.getTitle());
-                    myTodos.add(myTodo);
+            public void onPageScrolled(int position, float positionOffset, int
+                    positionOffsetPixels) {
+            }
+            @Override
+            public void onPageSelected(int position) {
+                switch (position) {
+                    case 0:
+                        navigationView.getMenu().findItem(R.id.todos).setChecked(true);
+                        break;
+                    case 1:
+                        navigationView.getMenu().findItem(R.id.profile).setChecked(true);
+                        break;
                 }
-                adapter = new Todo_Adapter(MainActivity.this, myTodos, myRef, user);
-                binding.todoListView.setAdapter(adapter);
-                adapter.notifyDataSetChanged();
             }
-
             @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-
+            public void onPageScrollStateChanged(int state) {
             }
         });
-    }
-
-    public void setOnClickAdd() {
-        binding.addBtn.setOnClickListener(new View.OnClickListener() {
+        navigationView.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
             @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(MainActivity.this,
-                        NewMissionActivity.class);
-                startActivity(intent);
-            }
-        });
-    }
-
-    public void getMission() {
-        binding.todoListView.setLayoutManager(new LinearLayoutManager(this));
-        database = FirebaseDatabase.getInstance();
-        myRef = FirebaseDatabase.getInstance("https://android-excersice-default-rtdb.asia-southeast1.firebasedatabase.app/").getReference().child("my-todo-" + user.getUid());
-        myRef.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                myTodos = new ArrayList<Mission>();
-                for (DataSnapshot item : snapshot.getChildren()) {
-                    Mission myTodo = item.getValue(Mission.class);
-                    Log.d("des ", myTodo.getDescription());
-                    myTodos.add(myTodo);
+            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                switch (item.getItemId()) {
+                    case R.id.todos:
+                        binding.viewPager.setCurrentItem(0);
+                        break;
+                    case R.id.profile:
+                        binding.viewPager.setCurrentItem(1);
+                        break;
                 }
-                adapter = new Todo_Adapter(MainActivity.this,
-                        myTodos, myRef, user);
-                binding.todoListView.setAdapter(adapter);
-                adapter.notifyDataSetChanged();
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-
+                return true;
             }
         });
+        contextOfApplication = getApplicationContext();
     }
 
-    public void getInformation() {
-        user = FirebaseAuth.getInstance().getCurrentUser();
-        if (user.getPhotoUrl() != null) {
-            Log.d("image ", user.getPhotoUrl().toString());
-            Glide.with(this).load(user.getPhotoUrl()).into(binding.avatar);
+    public class ViewPagerAdapter extends FragmentStatePagerAdapter {
+        private final int pageNum;
+
+        public ViewPagerAdapter(@NonNull FragmentManager fm, int behavior) {
+            super(fm, behavior);
+            this.pageNum = behavior;
         }
-        if (user.getDisplayName() != null) {
-            Log.d("name ", user.getDisplayName());
-            binding.welcomeTv.setText("Hey " + user.getDisplayName());
+
+        @NonNull
+        @Override
+        public Fragment getItem(int position) {
+            switch (position) {
+                case 0:
+                    return new TodoFragment();
+                case 1:
+                    return new ProfileFragment();
+                default:
+                    return new TodoFragment();
+            }
         }
+
+        @Override
+        public int getCount() {
+            return pageNum;
+        }
+    }
+    public static Context contextOfApplication;
+    public static Context getContextOfApplication()
+    {
+        return contextOfApplication;
     }
 }
