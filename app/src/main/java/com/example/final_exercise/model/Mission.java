@@ -1,11 +1,13 @@
 package com.example.final_exercise.model;
 
 import java.io.Serializable;
+import java.util.Comparator;
 
-public class Mission implements Serializable {
+public class Mission implements Serializable, Comparable<Mission> {
     private String title, date, description, key, label;
     private int level;
     private boolean isDone;
+
     public Mission() {
     }
 
@@ -63,5 +65,13 @@ public class Mission implements Serializable {
 
     public void setLabel(String label) {
         this.label = label;
+    }
+
+    @Override
+    public int compareTo(Mission o) {
+        if (o.getLevel() == this.getLevel()) {
+            return 0;
+        }
+        return (o.getLevel() > this.getLevel()) ? 1 : -1;
     }
 }

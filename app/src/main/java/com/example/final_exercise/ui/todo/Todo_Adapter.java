@@ -94,7 +94,10 @@ public class Todo_Adapter extends
                 } else {
                     holder.missionTitle.setPaintFlags(0);
                 }
-                myRef.child("mission" + myTodoList.get(position).getKey()).setValue(myTodoList.get(position)).addOnSuccessListener(new OnSuccessListener<Void>() {
+                myRef.child("my-todo-" + user.getUid())
+                        .child("mission" + myTodoList.get(position).getKey())
+                        .setValue(myTodoList.get(position))
+                        .addOnSuccessListener(new OnSuccessListener<Void>() {
                     @Override
                     public void onSuccess(Void aVoid) {
                     }

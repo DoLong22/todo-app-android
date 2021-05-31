@@ -76,8 +76,9 @@ public class UpdateMissionActivity extends AppCompatActivity {
                 editTodo.setDescription(binding.des.getText().toString());
                 editTodo.setDate(binding.date.getText().toString());
                 editTodo.setKey(mission.getKey());
-                editTodo.setLabel(binding.labelSpinner.getSelectedItem().toString());
-
+                String label = binding.labelSpinner.getSelectedItem().toString();
+                editTodo.setLabel(label);
+                editTodo.setLevel(getLevel(label));
                 reference.setValue(editTodo).addOnSuccessListener(new OnSuccessListener<Void>() {
                     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
                     @Override
@@ -100,7 +101,7 @@ public class UpdateMissionActivity extends AppCompatActivity {
         });
     }
 
-    private void setOnClickCancelBtn(){
+    private void setOnClickCancelBtn() {
         binding.btnCancel.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -153,5 +154,24 @@ public class UpdateMissionActivity extends AppCompatActivity {
 //            c.add(Calendar.DATE, 1);
 //        }
         alarmManager.setExact(AlarmManager.RTC_WAKEUP, c.getTimeInMillis(), pendingIntent);
+    }
+
+    public int getLevel(String label) {
+        int level = 0;
+        switch (label) {
+            case "Very Important":
+                level = 3;
+                break;
+            case "Important":
+                level = 2;
+                break;
+            case "Normal":
+                level = 1;
+                break;
+            case "Unnecessary":
+                level = 0;
+                break;
+        }
+        return level;
     }
 }

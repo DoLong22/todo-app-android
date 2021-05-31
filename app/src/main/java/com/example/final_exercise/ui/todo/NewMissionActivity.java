@@ -61,16 +61,16 @@ public class NewMissionActivity extends AppCompatActivity {
                 reference = FirebaseDatabase.getInstance("https://android-excersice-default-rtdb.asia-southeast1.firebasedatabase.app/").getReference()
                         .child("my-todo-" + user.getUid()).child("mission" + keytodo);
                 Map<String, Object> data = new HashMap<>();
-                data.put("title", binding.title.getText().toString());
-                data.put("description", binding.des.getText().toString());
-                data.put("date", binding.date.getText().toString());
-                data.put("key", keytodo);
-                data.put("isDone", false);
-                data.put("label", binding.labelSpinner.getSelectedItem().toString());
-                reference.setValue(data);
                 Mission mission = new Mission();
                 mission.setTitle(binding.title.getText().toString());
                 mission.setDescription(binding.des.getText().toString());
+                mission.setDate(binding.date.getText().toString());
+                mission.setKey(keytodo);
+                mission.setDone(false);
+                String label = binding.labelSpinner.getSelectedItem().toString();
+                mission.setLabel(label);
+                mission.setLevel(getLevel(label));
+                reference.setValue(mission);
                 if (calendar != null) {
                     startAlarm(calendar, mission);
                 }
@@ -125,5 +125,22 @@ public class NewMissionActivity extends AppCompatActivity {
 //        }
         alarmManager.setExact(AlarmManager.RTC_WAKEUP, c.getTimeInMillis(), pendingIntent);
     }
-
+    public int getLevel(String label){
+        int level = 0;
+        switch (label){
+            case "Very Important":
+                level= 3;
+                break;
+            case "Important":
+                level = 2;
+                break;
+            case "Normal":
+                level = 1;
+                break;
+            case "Unnecessary":
+                level = 0;
+                break;
+        }
+        return level;
+    }
 }
