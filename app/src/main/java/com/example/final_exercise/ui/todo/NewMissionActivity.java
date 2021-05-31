@@ -10,12 +10,14 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.DatePicker;
 
 import com.example.final_exercise.R;
 import com.example.final_exercise.databinding.ActivityNewMissionBinding;
+import com.example.final_exercise.model.Mission;
 import com.example.final_exercise.notification.AlertReceiver;
 import com.example.final_exercise.notification.MyNotification;
 import com.google.firebase.auth.FirebaseAuth;
@@ -44,16 +46,14 @@ public class NewMissionActivity extends AppCompatActivity {
         binding = ActivityNewMissionBinding.inflate(getLayoutInflater());
         user = FirebaseAuth.getInstance().getCurrentUser();
         setContentView(binding.getRoot());
-        calendar = Calendar.getInstance();
         setOnClickCancelBtn();
         setOnClickCreateBtn();
         setOnClickSelectDate();
-        setOnClickStartAlarm();
     }
 
     private void setOnClickCreateBtn() {
         binding.btnSaveMission.setOnClickListener(new View.OnClickListener() {
-//            @RequiresApi(api = Build.VERSION_CODES.KITKAT)
+            //            @RequiresApi(api = Build.VERSION_CODES.KITKAT)
             @RequiresApi(api = Build.VERSION_CODES.KITKAT)
             @Override
             public void onClick(View v) {
@@ -68,7 +68,12 @@ public class NewMissionActivity extends AppCompatActivity {
                 data.put("isDone", false);
                 data.put("label", binding.labelSpinner.getSelectedItem().toString());
                 reference.setValue(data);
-                startAlarm(calendar);
+                Mission mission = new Mission();
+                mission.setTitle(binding.title.getText().toString());
+                mission.setDescription(binding.des.getText().toString());
+                if (calendar != null) {
+                    startAlarm(calendar, mission);
+                }
                 finish();
             }
         });
@@ -88,10 +93,10 @@ public class NewMissionActivity extends AppCompatActivity {
         binding.date.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                final Calendar c = Calendar.getInstance();
-                mYear = c.get(Calendar.YEAR);
-                mMonth = c.get(Calendar.MONTH);
-                mDay = c.get(Calendar.DAY_OF_MONTH);
+                calendar = Calendar.getInstance();
+                mYear = calendar.get(Calendar.YEAR);
+                mMonth = calendar.get(Calendar.MONTH);
+                mDay = calendar.get(Calendar.DAY_OF_MONTH);
                 DatePickerDialog datePickerDialog = new DatePickerDialog(NewMissionActivity.this,
                         new DatePickerDialog.OnDateSetListener() {
                             @Override
@@ -106,20 +111,14 @@ public class NewMissionActivity extends AppCompatActivity {
         });
     }
 
-    public void setOnClickStartAlarm() {
-        binding.btnStartAlarm.setOnClickListener(new View.OnClickListener() {
-            @RequiresApi(api = Build.VERSION_CODES.KITKAT)
-            @Override
-            public void onClick(View v) {
-                startAlarm(calendar);
-            }
-        });
-    }
-
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
-    private void startAlarm(Calendar c) {
+    private void startAlarm(Calendar c, Mission mission) {
         AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-        Intent intent = new Intent(this, AlertReceiver.class);
+        Intent intent = new Intent(this, MyNotification.class);
+        intent.putExtra("myAction", "mDoNotify");
+        intent.putExtra("Title", mission.getTitle());
+        intent.putExtra("Description", mission.getDescription());
+
         PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 1, intent, 0);
 //        if (c.before(Calendar.getInstance())) {
 //            c.add(Calendar.DATE, 1);

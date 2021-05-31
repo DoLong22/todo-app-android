@@ -186,14 +186,6 @@
                 android:backgroundTint="@color/main"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
-            <Button
-                android:id="@+id/btnStartAlarm"
-                android:layout_width="@dimen/button_width_nomal"
-                android:layout_height="wrap_content"
-                android:text="Start Alarm"
-                android:backgroundTint="@color/main"
-                app:layout_constraintStart_toEndOf="@id/btnCancel"
-                app:layout_constraintTop_toTopOf="parent" />
 
             <Button
                 android:id="@+id/btnSaveMission"
