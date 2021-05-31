@@ -40,7 +40,7 @@ public class MyNotification extends BroadcastReceiver {
                             .setSmallIcon(R.drawable.ic_notifications)
                             .setContentTitle(intent.getStringExtra("Title"))
                             .setContentText(intent.getStringExtra("Description"))
-                            .setColor(Color.RED)
+//                            .setColor(Color.RED)
                             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
                             .setAutoCancel(true);
             Intent i = new Intent(context, MainActivity.class);

@@ -62,7 +62,7 @@ public class LoginActivity extends AppCompatActivity {
                 return;
             }
             if (password.length() < 6) {
-                biding.email.setError("Password must be >= 6 characters");
+                biding.password.setError("Password must be >= 6 characters");
                 return;
             }
             mAuth.signInWithEmailAndPassword(email, password).
@@ -78,7 +78,7 @@ public class LoginActivity extends AppCompatActivity {
                 @Override
                 public void onFailure(@NonNull Exception e) {
                     Toast.makeText(LoginActivity.this,
-                            "Login Failed", Toast.LENGTH_SHORT).show();
+                            "Invalid email/password", Toast.LENGTH_SHORT).show();
                 }
             });
         });
