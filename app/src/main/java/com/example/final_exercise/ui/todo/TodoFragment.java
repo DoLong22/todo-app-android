@@ -1,6 +1,7 @@
 package com.example.final_exercise.ui.todo;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 
@@ -164,10 +165,9 @@ public class TodoFragment extends Fragment {
 
     public void getInformation() {
         if (user.getPhotoUrl() != null) {
-            Log.d("image ", user.getPhotoUrl().toString());
             Glide.with(this).load(user.getPhotoUrl()).into(binding.avatar);
         }
-        if (user.getDisplayName() != null) {
+        if (user.getDisplayName() != null || !user.getDisplayName().equals("")) {
             Log.d("name ", user.getDisplayName());
             binding.welcomeTv.setText("Hey " + user.getDisplayName());
         }

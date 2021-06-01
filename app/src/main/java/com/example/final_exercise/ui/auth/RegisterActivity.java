@@ -1,11 +1,14 @@
 package com.example.final_exercise.ui.auth;
 
 import androidx.appcompat.app.AppCompatActivity;
+
 import com.example.final_exercise.R;
 import com.example.final_exercise.databinding.ActivityRegisterBinding;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
@@ -33,22 +36,21 @@ public class RegisterActivity extends AppCompatActivity {
                 String email = binding.email.getText().toString();
                 String password = binding.password.getText().toString();
                 String confirmPassword = binding.confirmPassword.getText().toString();
-                if(password.isEmpty()){
+                if (password.isEmpty()) {
                     binding.password.setError("Password is not blank");
-                }
-                else if(password.length()<6){
+                } else if (password.length() < 6) {
                     binding.password.setError("Password must be >=6 characters");
-                }
-                else if(!confirmPassword.equals(password)){
+                } else if (!confirmPassword.equals(password)) {
                     binding.confirmPassword.setError("Confirm password not equal password");
-                }
-                else {
-                    mFirebaseAuth.createUserWithEmailAndPassword(email,password).addOnCompleteListener(task -> {
-                        if(task.isSuccessful()){
+                } else {
+                    mFirebaseAuth.createUserWithEmailAndPassword(email, password).addOnCompleteListener(task -> {
+                        if (task.isSuccessful()) {
                             Toast.makeText(RegisterActivity.this,
                                     "Succsessfull!!", Toast.LENGTH_SHORT).show();
+                            FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+                            Log.d("uuid_user ", user.getUid());
                             finish();
-                        }else{
+                        } else {
                             Toast.makeText(RegisterActivity.this,
                                     "Fail!!", Toast.LENGTH_SHORT).show();
                         }

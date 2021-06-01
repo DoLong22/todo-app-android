@@ -178,7 +178,7 @@
 
             <Button
                 android:id="@+id/btnCancel"
-                android:layout_width="@dimen/button_width_nomal"
+                android:layout_width="@dimen/button_width_normal"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="48dp"
                 android:layout_marginEnd="48dp"
@@ -189,7 +189,7 @@
 
             <Button
                 android:id="@+id/btnSaveMission"
-                android:layout_width="@dimen/button_width_nomal"
+                android:layout_width="@dimen/button_width_normal"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="48dp"
                 android:layout_marginEnd="48dp"

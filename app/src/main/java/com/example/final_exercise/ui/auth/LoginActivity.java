@@ -49,7 +49,7 @@ public class LoginActivity extends AppCompatActivity {
                 .build();
         mGoogleSignInClient = GoogleSignIn.getClient(this, gso);
         mAuth = FirebaseAuth.getInstance();
-        setOnlickGgSignBtn();
+        setOnClickGgSignBtn();
         biding.loginBtn.setOnClickListener(v -> {
             String email = biding.email.getText().toString();
             String password = biding.password.getText().toString();
@@ -92,7 +92,7 @@ public class LoginActivity extends AppCompatActivity {
         });
     }
 
-    private void setOnlickGgSignBtn() {
+    private void setOnClickGgSignBtn() {
         biding.ggSigninbtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -110,7 +110,6 @@ public class LoginActivity extends AppCompatActivity {
     public void onStart() {
         super.onStart();
         FirebaseUser currentUser = mAuth.getCurrentUser();
-        updateUI(currentUser);
     }
 
     @Override
@@ -140,16 +139,10 @@ public class LoginActivity extends AppCompatActivity {
                         if (task.isSuccessful()) {
                             Log.d(TAG, "signInWithCredential:success");
                             FirebaseUser user = mAuth.getCurrentUser();
-                            updateUI(user);
                         } else {
                             Log.w(TAG, "signInWithCredential:failure", task.getException());
-                            updateUI(null);
                         }
                     }
                 });
-    }
-
-    private void updateUI(FirebaseUser user) {
-
     }
 }
