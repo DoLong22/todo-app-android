@@ -4,8 +4,11 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.final_exercise.R;
 import com.example.final_exercise.databinding.ActivityRegisterBinding;
+import com.example.final_exercise.model.User;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 import android.os.Bundle;
 import android.util.Log;
@@ -16,6 +19,7 @@ public class RegisterActivity extends AppCompatActivity {
 
     private ActivityRegisterBinding binding;
     protected FirebaseAuth mFirebaseAuth;
+    private DatabaseReference reference;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,9 +50,12 @@ public class RegisterActivity extends AppCompatActivity {
                     mFirebaseAuth.createUserWithEmailAndPassword(email, password).addOnCompleteListener(task -> {
                         if (task.isSuccessful()) {
                             Toast.makeText(RegisterActivity.this,
-                                    "Succsessfull!!", Toast.LENGTH_SHORT).show();
+                                    "Successful!!", Toast.LENGTH_SHORT).show();
                             FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-                            Log.d("uuid_user ", user.getUid());
+                            User userSave = new User();
+                            userSave.setUid(user.getUid());
+                            userSave.setReport(false);
+                            saveUser(userSave);
                             finish();
                         } else {
                             Toast.makeText(RegisterActivity.this,
@@ -58,5 +65,11 @@ public class RegisterActivity extends AppCompatActivity {
                 }
             }
         });
+    }
+    public void saveUser(User user){
+        reference = FirebaseDatabase.getInstance("https://android-excersice-default-rtdb.asia-southeast1.firebasedatabase.app/")
+                .getReference()
+                .child("users").child(user.getUid());
+        reference.setValue(user);
     }
 }

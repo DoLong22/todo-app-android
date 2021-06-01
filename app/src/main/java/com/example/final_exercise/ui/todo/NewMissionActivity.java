@@ -60,7 +60,6 @@ public class NewMissionActivity extends AppCompatActivity {
                 user = FirebaseAuth.getInstance().getCurrentUser();
                 reference = FirebaseDatabase.getInstance("https://android-excersice-default-rtdb.asia-southeast1.firebasedatabase.app/").getReference()
                         .child("my-todo-" + user.getUid()).child("mission" + keytodo);
-                Map<String, Object> data = new HashMap<>();
                 Mission mission = new Mission();
                 mission.setTitle(binding.title.getText().toString());
                 mission.setDescription(binding.des.getText().toString());

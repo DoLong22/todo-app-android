@@ -13,6 +13,7 @@ import android.widget.Toast;
 
 import com.example.final_exercise.R;
 import com.example.final_exercise.databinding.ActivityLoginBinding;
+import com.example.final_exercise.model.User;
 import com.example.final_exercise.ui.MainActivity;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
@@ -28,14 +29,19 @@ import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 public class LoginActivity extends AppCompatActivity {
 
     private static final int RC_SIGN_IN = 9001;
     private static final String TAG = "GoogleActivity";
     private FirebaseAuth mAuth;
+    private DatabaseReference myRef;
     private GoogleSignInClient mGoogleSignInClient;
     private ActivityLoginBinding biding;
+    private FirebaseUser user;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -70,9 +76,8 @@ public class LoginActivity extends AppCompatActivity {
                         @Override
                         public void onSuccess(AuthResult authResult) {
                             Toast.makeText(LoginActivity.this, "Login Successfully", Toast.LENGTH_LONG).show();
-                            Intent intent = new Intent(LoginActivity.this,
-                                    MainActivity.class);
-                            startActivity(intent);
+                            user = FirebaseAuth.getInstance().getCurrentUser();
+                            renderNextActivity();
                         }
                     }).addOnFailureListener(new OnFailureListener() {
                 @Override
@@ -121,9 +126,8 @@ public class LoginActivity extends AppCompatActivity {
                 GoogleSignInAccount account = task.getResult(ApiException.class);
                 Log.d(TAG, "firebaseAuthWithGoogle:" + account.getId());
                 firebaseAuthWithGoogle(account.getIdToken());
-                Intent intent = new Intent(LoginActivity.this,
-                        MainActivity.class);
-                startActivity(intent);
+                user = FirebaseAuth.getInstance().getCurrentUser();
+                renderNextActivity();
             } catch (ApiException e) {
                 Log.w(TAG, "Google sign in failed", e);
             }
@@ -144,5 +148,30 @@ public class LoginActivity extends AppCompatActivity {
                         }
                     }
                 });
+    }
+
+    private void renderNextActivity() {
+        myRef = FirebaseDatabase.
+                getInstance("https://android-excersice-default-rtdb.asia-southeast1.firebasedatabase.app/")
+                .getReference();
+        myRef.child("users").child(user.getUid()).get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<DataSnapshot> task) {
+                if (!task.isSuccessful()) {
+                    Log.e("firebase", "Error getting data", task.getException());
+                } else {
+                    User user = task.getResult().getValue(User.class);
+                    Intent intent = new Intent(LoginActivity.this,
+                            ReportInformationActivity.class);
+                    if(user != null){
+                        if(user.isReport()){
+                            intent = new Intent(LoginActivity.this,
+                                    MainActivity.class);
+                        }
+                    }
+                    startActivity(intent);
+                }
+            }
+        });
     }
 }
