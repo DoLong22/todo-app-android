@@ -1,8 +1,5 @@
 package com.example.final_exercise.ui.auth;
 
-import android.app.Activity;
-import android.app.ProgressDialog;
-import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
@@ -12,30 +9,19 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.webkit.MimeTypeMap;
-import android.widget.ProgressBar;
-import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
-import com.bumptech.glide.load.resource.bitmap.RoundedCorners;
-import com.bumptech.glide.request.RequestOptions;
-import com.example.final_exercise.R;
 import com.example.final_exercise.databinding.FragmentProfileBinding;
-import com.example.final_exercise.databinding.FragmentTodoBinding;
+import com.example.final_exercise.model.User;
+import com.example.final_exercise.service.FirebaseService;
 import com.example.final_exercise.ui.MainActivity;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.auth.UserProfileChangeRequest;
-import com.google.firebase.storage.FirebaseStorage;
-import com.google.firebase.storage.StorageReference;
-import com.google.firebase.storage.UploadTask;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.ValueEventListener;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -43,11 +29,10 @@ import com.google.firebase.storage.UploadTask;
  * create an instance of this fragment.
  */
 public class ProfileFragment extends Fragment {
-    private static final int IMAGE_REQUEST = 2;
-    private FirebaseUser user;
+    private FirebaseService fbService;
     private FragmentProfileBinding binding;
-    private Uri imageUri;
     private Context applicationContext;
+    private User user;
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
@@ -92,8 +77,10 @@ public class ProfileFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        fbService = FirebaseService.getInstance();
         getInformation();
-        setOnClickImageBtn();
+        setOnClickEditBtn();
+        setOnClickLogoutBtn();
     }
 
     @Override
@@ -104,91 +91,53 @@ public class ProfileFragment extends Fragment {
     }
 
     public void getInformation() {
-        user = FirebaseAuth.getInstance().getCurrentUser();
-        if (user.getPhotoUrl() != null) {
-            Log.d("image ", user.getPhotoUrl().toString());
-            Glide.with(ProfileFragment.this)
-                    .load(user.getPhotoUrl()).override(300, 300)
-                    .apply(RequestOptions.bitmapTransform(new RoundedCorners(14)))
-                    .into(binding.btnAvatar);
-        }
+        fbService.getMyRef()
+                .child("users").child(fbService.getUidUser())
+                .addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        user = snapshot.getValue(User.class);
+                        if (getActivity() == null) {
+                            return;
+                        }else{
+                            Glide.with(getContext()).load(Uri.parse(user.getPhotoUri())).into(binding.btnAvatar);
+                        }
+                        binding.soDeep.setText(user.getSoDeep());
+                        binding.nickNameTv.setText(user.getDisplayName());
+                        binding.genderTv.setText(user.getGender());
+                        binding.birthDayTv.setText(user.getBirthDay());
+                    }
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+
+                    }
+                });
     }
 
-    private void setOnClickImageBtn() {
-        binding.btnAvatar.setOnClickListener(new View.OnClickListener() {
+    public void setOnClickEditBtn(){
+        binding.editBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                openImage();
+                Intent intent = new Intent(getContext(),
+                        ReportInformationActivity.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                intent.putExtra("REQUEST_UPDATE",true);
+                intent.putExtra("INFORMATION_USER",user);
+                startActivity(intent);
             }
         });
     }
 
-    public void openImage() {
-        Intent intent = new Intent();
-        intent.setType("*/*");
-        intent.setAction(Intent.ACTION_GET_CONTENT);
-        startActivityForResult(intent, IMAGE_REQUEST);
-    }
-
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == IMAGE_REQUEST && resultCode == Activity.RESULT_OK) {
-            imageUri = data.getData();
-            uploadImage();
-            Bundle result = new Bundle();
-            result.putString("bundleKey", "result");
-            getParentFragmentManager().setFragmentResult("requestKey", result);
-
-        }
-    }
-
-    public void uploadImage() {
-        final ProgressDialog pd = new ProgressDialog(getContext());
-        pd.setMessage("Uploading");
-        pd.show();
-        if (imageUri != null) {
-            StorageReference fileRef = FirebaseStorage.getInstance().getReference().child("uploads").child(System.currentTimeMillis() + "." + getFileExtension(imageUri));
-            fileRef.putFile(imageUri).addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
-                @Override
-                public void onComplete(@NonNull Task<UploadTask.TaskSnapshot> task) {
-                    fileRef.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
-                        @Override
-                        public void onSuccess(Uri uri) {
-                            String url = uri.toString();
-                            Log.d("DownloadUrl", url);
-                            pd.dismiss();
-                            Glide.with(ProfileFragment.this)
-                                    .load(url).override(200, 200)
-                                    .apply(RequestOptions.bitmapTransform(new RoundedCorners(14)))
-                                    .into(binding.btnAvatar);
-                            updateAvatar(uri);
-                        }
-                    });
-                }
-            });
-        }
-    }
-
-    private String getFileExtension(Uri imageUri) {
-        ContentResolver contentResolver = applicationContext.getContentResolver();
-        MimeTypeMap mimeTypeMap = MimeTypeMap.getSingleton();
-        return mimeTypeMap.getExtensionFromMimeType(contentResolver.getType(imageUri));
-    }
-
-    private void updateAvatar(Uri uri) {
-        UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
-                .setPhotoUri(uri)
-                .build();
-        user.updateProfile(profileUpdates)
-                .addOnCompleteListener(new OnCompleteListener<Void>() {
-                    @Override
-                    public void onComplete(@NonNull Task<Void> task) {
-                        if (task.isSuccessful()) {
-                            Toast.makeText(getActivity(), "Update successful", Toast.LENGTH_SHORT).show();
-                        }
-                    }
-                });
+    public void setOnClickLogoutBtn(){
+        binding.btnLogout.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+//                FirebaseAuth.getInstance().signOut();
+                Intent intent = new Intent(getContext(),
+                        LoginActivity.class);
+                startActivity(intent);
+            }
+        });
     }
 
 }

@@ -12,7 +12,7 @@
         android:id="@+id/avatar"
         android:layout_width="150dp"
         android:layout_height="150dp"
-        android:layout_marginTop="30dp"
+        android:layout_marginTop="@dimen/padding_top_normal"
         android:src="@drawable/boy"
         app:civ_border_color="#fff"
         app:civ_border_width="3dp"
@@ -20,10 +20,22 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <ImageButton
+        android:id="@+id/btnAvatar"
+        android:layout_width="50dp"
+        android:layout_height="wrap_content"
+        android:backgroundTint="#fff"
+        android:layout_marginTop="140dp"
+        android:layout_marginRight="110dp"
+        android:src="@drawable/ic_baseline_edit_24"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
     <EditText
         android:id="@+id/displayName"
         android:layout_width="0dp"
         android:layout_height="@dimen/input_height"
+        android:layout_marginTop="@dimen/margin_top_normal"
         android:hint="Nick name"
         android:paddingLeft="@dimen/input_padding"
         android:background="@drawable/custom_input"
@@ -38,6 +50,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         app:layout_constraintLeft_toLeftOf="parent"
+        android:paddingTop="@dimen/padding_top_normal"
         android:paddingBottom="@dimen/padding_bottom_normal"
         android:text="Gender"
         app:layout_constraintTop_toBottomOf="@id/displayName" />
@@ -50,8 +63,7 @@
         app:layout_constraintLeft_toRightOf="@+id/labelGender"
         android:orientation="vertical"
         android:layout_marginTop="@dimen/margin_top_normal"
-        android:checkedButton="@id/radioBtnBoy"
-        >
+        android:checkedButton="@id/radioBtnBoy">
 
         <RadioButton
             android:id="@+id/radioBtnBoy"
@@ -71,9 +83,9 @@
     </RadioGroup>
 
     <TextView
-        android:id="@+id/birthday"
-        android:layout_width="match_parent"
-        android:layout_height="@dimen/input_height"
+        android:id="@+id/birthdayLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:background="@drawable/custom_input"
         android:clickable="true"
         android:focusable="true"
@@ -82,6 +94,22 @@
         android:inputType="text"
         android:paddingLeft="@dimen/input_padding"
         app:layout_constraintTop_toBottomOf="@id/btnRadio"
+        app:layout_constraintLeft_toLeftOf="parent"
+        android:textColor="@color/colorPrimaryDark"
+        android:backgroundTint="@color/white"
+        android:textColorHint="#B5B5B5" />
+
+    <TextView
+        android:id="@+id/birthday"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/input_height"
+        android:background="@drawable/custom_input"
+        android:clickable="true"
+        android:focusable="true"
+        android:hint=""
+        android:inputType="text"
+        android:paddingLeft="@dimen/input_padding"
+        app:layout_constraintTop_toBottomOf="@id/birthdayLabel"
         android:textColor="@color/colorPrimaryDark"
         android:backgroundTint="@color/white"
         android:textColorHint="#B5B5B5" />
@@ -89,11 +117,13 @@
     <EditText
         android:id="@+id/soDeep"
         android:layout_width="0dp"
-        android:layout_height="100dp"
+        android:minHeight="100dp"
+        android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/margin_top_normal"
         android:hint="So deep"
         android:background="@drawable/custom_input"
-        android:inputType="textEmailAddress"
+        android:inputType="textMultiLine"
+        android:maxLines="5"
         android:selectAllOnFocus="true"
         android:paddingLeft="@dimen/input_padding"
         app:layout_constraintEnd_toEndOf="parent"
@@ -121,7 +151,7 @@
         android:layout_width="@dimen/button_width_normal"
         android:layout_height="@dimen/button_height_normal"
         android:background="@drawable/custom_input"
-        android:layout_marginTop="30dp"
+        android:layout_marginTop="25dp"
         android:text="Ok"
         app:layout_constraintTop_toBottomOf="@id/soDeep"
         app:layout_constraintLeft_toLeftOf="parent"

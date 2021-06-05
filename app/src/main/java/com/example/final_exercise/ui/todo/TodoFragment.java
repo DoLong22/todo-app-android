@@ -20,6 +20,8 @@ import android.view.ViewGroup;
 import com.bumptech.glide.Glide;
 import com.example.final_exercise.databinding.FragmentTodoBinding;
 import com.example.final_exercise.model.Mission;
+import com.example.final_exercise.model.User;
+import com.example.final_exercise.service.FirebaseService;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -41,8 +43,7 @@ import java.util.List;
  * create an instance of this fragment.
  */
 public class TodoFragment extends Fragment {
-    private FirebaseUser user;
-    private DatabaseReference myRef;
+    private FirebaseService fbService;
     private FragmentTodoBinding binding;
     ArrayList<Mission> myTodos;
     private Todo_Adapter adapter;
@@ -102,21 +103,19 @@ public class TodoFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         binding.todoListView.setLayoutManager(new LinearLayoutManager(getContext()));
-        user = FirebaseAuth.getInstance().getCurrentUser();
-        myRef = FirebaseDatabase.
-                getInstance("https://android-excersice-default-rtdb.asia-southeast1.firebasedatabase.app/")
-                .getReference();
+        fbService = FirebaseService.getInstance();
         getMission();
         setOnClickAdd();
         getInformation();
     }
 
-        @Override
+    @Override
     public void onResume() {
         getInformation();
         super.onResume();
-        Log.d("tesst","come here");
+        Log.d("tesst", "come here");
     }
+
     public void setOnClickAdd() {
         binding.addBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -130,8 +129,8 @@ public class TodoFragment extends Fragment {
 
     public void getMission() {
         binding.todoListView.setLayoutManager(new LinearLayoutManager(getContext()));
-        Query myQuery = myRef
-                .child("my-todo-" + user.getUid())
+        Query myQuery = fbService.getMyRef()
+                .child("my-todo-" + fbService.getUidUser())
                 .orderByKey();
         myQuery.addValueEventListener(new ValueEventListener() {
             @RequiresApi(api = Build.VERSION_CODES.N)
@@ -141,17 +140,16 @@ public class TodoFragment extends Fragment {
                 List<Mission> missionsDone = new ArrayList<>();
                 for (DataSnapshot item : snapshot.getChildren()) {
                     Mission myTodo = item.getValue(Mission.class);
-                    if(myTodo.isDone()){
+                    if (myTodo.isDone()) {
                         missionsDone.add(myTodo);
-                    }
-                    else{
+                    } else {
                         myTodos.add(myTodo);
                     }
                 }
                 Collections.sort(myTodos);
                 myTodos.addAll(missionsDone);
                 adapter = new Todo_Adapter(getContext(),
-                        myTodos, myRef, user);
+                        myTodos, fbService.getMyRef(), fbService.getUidUser());
                 binding.todoListView.setAdapter(adapter);
                 adapter.notifyDataSetChanged();
             }
@@ -164,12 +162,23 @@ public class TodoFragment extends Fragment {
     }
 
     public void getInformation() {
-        if (user.getPhotoUrl() != null) {
-            Glide.with(this).load(user.getPhotoUrl()).into(binding.avatar);
-        }
-        if (user.getDisplayName() != null || !user.getDisplayName().equals("")) {
-            Log.d("name ", user.getDisplayName());
-            binding.welcomeTv.setText("Hey " + user.getDisplayName());
-        }
+        fbService.getMyRef()
+                .child("users").child(fbService.getUidUser())
+                .addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        User user = snapshot.getValue(User.class);
+                        if (getActivity() == null) {
+                            return;
+                        }else{
+                            Glide.with(getContext()).load(Uri.parse(user.getPhotoUri())).into(binding.avatar);
+                            binding.welcomeTv.setText("Hey " + user.getDisplayName());
+                        }
+                    }
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+
+                    }
+                });
     }
 }

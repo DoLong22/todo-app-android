@@ -1,54 +1,92 @@
 package com.example.final_exercise.ui.auth;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.app.Activity;
 import android.app.DatePickerDialog;
+import android.app.ProgressDialog;
+import android.content.ContentResolver;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.webkit.MimeTypeMap;
 import android.widget.DatePicker;
 import android.widget.RadioButton;
+import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.example.final_exercise.R;
-import com.example.final_exercise.databinding.ActivityRegisterBinding;
 import com.example.final_exercise.databinding.ActivityReportInformationBinding;
 import com.example.final_exercise.model.Constant;
 import com.example.final_exercise.model.User;
+import com.example.final_exercise.service.FirebaseService;
 import com.example.final_exercise.ui.MainActivity;
-import com.example.final_exercise.ui.todo.NewMissionActivity;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
 
 import java.util.Calendar;
 
 public class ReportInformationActivity extends AppCompatActivity {
     private User user;
-    private FirebaseUser userLogin;
+    private FirebaseService fbService;
     private ActivityReportInformationBinding binding;
-    private DatabaseReference reference;
+    private static final int IMAGE_REQUEST = 2;
+    private Uri imageUri;
+    private boolean isUpdate;
+    private boolean isUpdatePhoto = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_report_information);
         binding = ActivityReportInformationBinding.inflate(getLayoutInflater());
-        userLogin = FirebaseAuth.getInstance().getCurrentUser();
-        user = new User();
+        fbService = FirebaseService.getInstance();
+        isUpdate = getIntent().getBooleanExtra("REQUEST_UPDATE", false);
+        if (isUpdate) {
+            user = (User) getIntent().getSerializableExtra("INFORMATION_USER");
+            setInformation();
+            binding.btnLater.setVisibility(View.GONE);
+        } else {
+            user = new User();
+            user.setPhotoUri(Constant.AVATAR_URI_BOY);
+            user.setGender("boy");
+            user.setUid(fbService.getUidUser());
+            user.setBirthDay(null);
+            user.setSoDeep(null);
+            user.setReport(true);
+        }
         setContentView(binding.getRoot());
         setOnClickBtnLater();
         setOnClickBtnOk();
-        user.setPhotoUri(Constant.AVATAR_URI_BOY);
-        user.setGender("boy");
-        user.setUid(userLogin.getUid());
-        user.setDisplayName(null);
-        user.setBirthDay(null);
-        user.setSoDeep(null);
-        user.setReport(true);
+        setOnClickImageBtn();
         setOnClickSelectDate();
+    }
+
+    public void setInformation() {
+        binding.displayName.setText(user.getDisplayName());
+        binding.birthday.setText(user.getBirthDay());
+        binding.soDeep.setText(user.getSoDeep());
+        Glide.with(this).load(Uri.parse(user.getPhotoUri())).into(binding.avatar);
+        switch (user.getGender()) {
+            case "boy":
+                binding.radioBtnBoy.setChecked(true);
+                break;
+            case "girl":
+                binding.radioBtnGirl.setChecked(true);
+                break;
+        }
     }
 
     public void onRadioButtonClicked(View view) {
@@ -56,32 +94,42 @@ public class ReportInformationActivity extends AppCompatActivity {
         switch (view.getId()) {
             case R.id.radioBtnBoy:
                 if (checked) {
-                    Glide.with(this).load(getImage("boy")).into(binding.avatar);
-                    user.setPhotoUri(Constant.AVATAR_URI_BOY);
+                    if(!isUpdate){
+                        Glide.with(this).load(getImage("boy")).into(binding.avatar);
+                        user.setPhotoUri(Constant.AVATAR_URI_BOY);
+                    }
                     user.setGender("boy");
+                    isUpdatePhoto = false;
                 }
                 break;
             case R.id.radioBtnGirl:
                 if (checked) {
-                    Glide.with(this).load(getImage("girl")).into(binding.avatar);
-                    user.setPhotoUri(Constant.AVATAR_URI_GIRL);
+                    if(!isUpdate){
+                        Glide.with(this).load(getImage("girl")).into(binding.avatar);
+                        user.setPhotoUri(Constant.AVATAR_URI_GIRL);
+                    }
                     user.setGender("girl");
+                    isUpdatePhoto = false;
                 }
                 break;
         }
-        // boy 2131230808
-        // girl 2131230869
     }
 
     public void setOnClickBtnLater() {
         binding.btnLater.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(ReportInformationActivity.this,
-                        MainActivity.class);
-                user.setBirthDay(null);
-                saveUser(user);
-                startActivity(intent);
+                if (binding.displayName.getText().toString().isEmpty()) {
+                    binding.displayName.setError("You should have a nick name");
+                } else {
+                    user.setDisplayName(binding.displayName.getText().toString());
+                    user.setBirthDay(null);
+                    Intent intent = new Intent(ReportInformationActivity.this,
+                            MainActivity.class);
+                    startActivity(intent);
+                    saveUser(user);
+                }
+
             }
         });
     }
@@ -90,12 +138,15 @@ public class ReportInformationActivity extends AppCompatActivity {
         binding.btnOk.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                user.setDisplayName(binding.displayName.getText().toString());
-                user.setSoDeep(binding.soDeep.getText().toString());
-                saveUser(user);
-                Intent intent = new Intent(ReportInformationActivity.this,
-                        MainActivity.class);
-                startActivity(intent);
+                if (binding.displayName.getText().toString().isEmpty()) {
+                    binding.displayName.setError("You should have a nick name");
+                }else{
+                    if (isUpdatePhoto) {
+                        uploadImage();
+                    } else {
+                        renderNextPage();
+                    }
+                }
             }
         });
     }
@@ -128,9 +179,77 @@ public class ReportInformationActivity extends AppCompatActivity {
     }
 
     public void saveUser(User user) {
-        reference = FirebaseDatabase.getInstance("https://android-excersice-default-rtdb.asia-southeast1.firebasedatabase.app/")
-                .getReference()
-                .child("users").child(user.getUid());
-        reference.setValue(user);
+        fbService.getMyRef().child("users").child(user.getUid()).setValue(user);
+    }
+
+    private void setOnClickImageBtn() {
+        binding.btnAvatar.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                isUpdatePhoto = true;
+                openImage();
+            }
+        });
+    }
+
+    public void openImage() {
+        Intent intent = new Intent();
+        intent.setType("*/*");
+        intent.setAction(Intent.ACTION_GET_CONTENT);
+        startActivityForResult(intent, IMAGE_REQUEST);
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == IMAGE_REQUEST && resultCode == Activity.RESULT_OK) {
+            imageUri = data.getData();
+            Glide.with(ReportInformationActivity.this)
+                    .load(imageUri).into(binding.avatar);
+        }
+    }
+
+    public void uploadImage() {
+        final ProgressDialog pd = new ProgressDialog(this);
+        pd.setMessage("Uploading");
+        pd.show();
+        if (imageUri != null) {
+            StorageReference fileRef = FirebaseStorage.getInstance().getReference().child("uploads").child(System.currentTimeMillis() + "." + getFileSuffix(imageUri));
+            fileRef.putFile(imageUri).addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
+                @Override
+                public void onComplete(@NonNull Task<UploadTask.TaskSnapshot> task) {
+                    fileRef.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+                        @Override
+                        public void onSuccess(Uri uri) {
+                            String photoUrlUpdated = uri.toString();
+                            pd.dismiss();
+                            user.setPhotoUri(photoUrlUpdated);
+                            Toast.makeText(ReportInformationActivity.this,
+                                    "Update successful", Toast.LENGTH_SHORT).show();
+                            renderNextPage();
+                        }
+                    });
+                }
+            });
+        }
+    }
+
+    private String getFileSuffix(Uri imageUri) {
+        ContentResolver contentResolver = getContentResolver();
+        MimeTypeMap mimeTypeMap = MimeTypeMap.getSingleton();
+        return mimeTypeMap.getExtensionFromMimeType(contentResolver.getType(imageUri));
+    }
+
+    private void renderNextPage() {
+        user.setDisplayName(binding.displayName.getText().toString());
+        user.setSoDeep(binding.soDeep.getText().toString());
+        saveUser(user);
+        if (isUpdate) {
+            finish();
+        } else {
+            Intent intent = new Intent(ReportInformationActivity.this,
+                    MainActivity.class);
+            startActivity(intent);
+        }
     }
 }

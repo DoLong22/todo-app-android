@@ -1,9 +1,12 @@
 package com.example.final_exercise.ui.todo;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.os.Build;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,10 +17,12 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.final_exercise.R;
 import com.example.final_exercise.model.Mission;
+import com.example.final_exercise.service.FirebaseService;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
@@ -31,14 +36,16 @@ public class Todo_Adapter extends
         RecyclerView.Adapter<Todo_Adapter.TodoViewHolder> {
     Context mContext;
     List<Mission> myTodoList;
-    private FirebaseUser user;
+    private String uidUser;
     private final DatabaseReference myRef;
+    private FirebaseService fbService;
 
-    public Todo_Adapter(Context mContext, List<Mission> myTodoList, DatabaseReference myRef, FirebaseUser user) {
+    public Todo_Adapter(Context mContext, List<Mission> myTodoList, DatabaseReference myRef, String uidUser) {
         this.mContext = mContext;
         this.myTodoList = myTodoList;
-        this.user = user;
+        this.uidUser = uidUser;
         this.myRef = myRef;
+        fbService = FirebaseService.getInstance();
     }
 
     @NonNull
@@ -52,7 +59,6 @@ public class Todo_Adapter extends
 
     @Override
     public void onBindViewHolder(@NonNull Todo_Adapter.TodoViewHolder holder, int position) {
-        user = FirebaseAuth.getInstance().getCurrentUser();
 
         if (myTodoList.get(position).isDone()) {
             holder.missionTitle.setPaintFlags(holder.missionTitle.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
@@ -94,7 +100,7 @@ public class Todo_Adapter extends
                 } else {
                     holder.missionTitle.setPaintFlags(0);
                 }
-                myRef.child("my-todo-" + user.getUid())
+                myRef.child("my-todo-" + uidUser)
                         .child("mission" + myTodoList.get(position).getKey())
                         .setValue(myTodoList.get(position))
                         .addOnSuccessListener(new OnSuccessListener<Void>() {
@@ -108,14 +114,12 @@ public class Todo_Adapter extends
                 });
             }
         });
-        holder.itemView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-//                Intent intent=new Intent(mContext, EditTodoActivity.class);
-//                intent.putExtra("todo", myTodoList.get(position));
-//                mContext.startActivity(intent);
-            }
-        });
+       holder.btnDelete.setOnClickListener(new View.OnClickListener() {
+           @Override
+           public void onClick(View v) {
+               deleteOne(position);
+           }
+       });
     }
 
     @Override
@@ -125,7 +129,7 @@ public class Todo_Adapter extends
 
     public class TodoViewHolder extends RecyclerView.ViewHolder {
         TextView missionTitle, missionDes, missionDate;
-        ImageButton editBtn;
+        ImageButton editBtn,btnDelete;
         CheckBox checkBox;
 
         public TodoViewHolder(@NonNull View itemView) {
@@ -135,6 +139,41 @@ public class Todo_Adapter extends
             missionDate = itemView.findViewById(R.id.missionDate);
             editBtn = itemView.findViewById(R.id.editBtn);
             checkBox = itemView.findViewById(R.id.checkBox);
+            btnDelete = itemView.findViewById(R.id.btnDelete);
         }
+    }
+    private void deleteOne(int position) {
+        AlertDialog.Builder alert = new AlertDialog.Builder(mContext);
+        alert.setTitle("Do you want to delete this task");
+        alert.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+            @RequiresApi(api = Build.VERSION_CODES.KITKAT)
+            public void onClick(DialogInterface dialog, int whichButton) {
+                deleteTask(position);
+                dialog.cancel();
+            }
+        });
+        alert.setNegativeButton("No", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int whichButton) {
+                dialog.cancel();
+            }
+        });
+        alert.show();
+    }
+    private void deleteTask(int position){
+        fbService.getMyRef().child("my-todo-" + uidUser)
+                .child("mission" + myTodoList.get(position).getKey()).removeValue()
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+            @Override
+            public void onSuccess(Void aVoid) {
+                Toast.makeText(mContext,
+                        "Delete success.",Toast.LENGTH_SHORT).show();
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Toast.makeText(mContext,
+                        "Delete failed.",Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 }

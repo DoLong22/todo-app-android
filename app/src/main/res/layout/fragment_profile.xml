@@ -7,26 +7,176 @@
     android:id="@+id/home"
     tools:context=".ui.auth.ProfileFragment">
 
-    <ImageView
-        android:id="@+id/btnAvatar"
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="120dp"
+        android:orientation="horizontal"
         app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
-        android:paddingTop="@dimen/padding_top_normal"
-        android:layout_width="200dp"
-        android:layout_height="wrap_content"
-        android:backgroundTint="@color/white"
-        android:src="@drawable/bt1" />
+        app:layout_constraintRight_toRightOf="parent"
+        android:background="@color/main">
 
-    <TextView
-        android:id="@+id/displayName"
-        android:layout_width="0dp"
-        android:layout_height="200dp"
-        android:text="@string/deep"
-        android:textSize="@dimen/text_size_primary"
-        android:textColor="@color/colorPrimaryDark"
-        android:paddingTop="@dimen/padding_top_normal"
-        app:layout_constraintStart_toEndOf="@+id/btnAvatar"
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <de.hdodenhof.circleimageview.CircleImageView
+        android:id="@+id/btnAvatar"
+        android:layout_width="150dp"
+        android:layout_height="150dp"
+        android:layout_marginTop="30dp"
+        android:src="@drawable/girl"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <TextView
+        android:id="@+id/soDeep"
+        android:layout_width="200dp"
+        android:layout_height="wrap_content"
+        android:text="@string/deep"
+        android:textSize="@dimen/text_size_primary"
+        android:textColor="@color/main"
+        android:paddingTop="@dimen/padding_top_normal"
+        android:gravity="center_horizontal"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/btnAvatar" />
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingLeft="@dimen/padding_left_normal"
+        android:paddingRight="@dimen/padding_right_normal"
+        app:layout_constraintTop_toBottomOf="@id/soDeep">
+
+        <TextView
+            android:id="@+id/tvPersonal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Personal Information"
+            android:textSize="14sp"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toTopOf="@id/guideline1" />
+
+        <ImageButton
+            android:id="@+id/editBtn"
+            android:layout_width="50dp"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="16dp"
+            android:backgroundTint="#fff"
+            android:src="@drawable/ic_baseline_edit_18"
+            app:layout_constraintLeft_toRightOf="@+id/tvPersonal"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <androidx.constraintlayout.widget.Guideline
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/guideline1"
+            android:orientation="horizontal"
+            app:layout_constraintGuide_percent="0.2" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/profile"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingLeft="@dimen/padding_left_normal"
+        android:paddingRight="@dimen/padding_right_normal"
+        app:layout_constraintTop_toBottomOf="@id/title">
+
+        <LinearLayout
+            android:id="@+id/formNickName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Nick name"/>
+            <TextView
+                android:id="@+id/nickNameTv"
+                android:layout_width="wrap_content"
+                android:textSize="18sp"
+                android:textColor="@color/black"
+                android:paddingTop="@dimen/padding_top_small"
+                android:layout_height="wrap_content"
+                android:text="Long Peo"/>
+        </LinearLayout>
+        <LinearLayout
+            android:id="@+id/formGender"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingTop="@dimen/padding_top_normal"
+            app:layout_constraintTop_toBottomOf="@id/formNickName"
+            app:layout_constraintLeft_toLeftOf="parent">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Gender"/>
+            <TextView
+                android:id="@+id/genderTv"
+                android:layout_width="wrap_content"
+                android:textSize="18sp"
+                android:textColor="@color/black"
+                android:paddingTop="@dimen/padding_top_small"
+                android:layout_height="wrap_content"
+                android:text="Boy"/>
+        </LinearLayout>
+        <LinearLayout
+            android:id="@+id/formBirthday"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingTop="@dimen/padding_top_normal"
+            app:layout_constraintTop_toBottomOf="@id/formGender"
+            app:layout_constraintLeft_toLeftOf="parent">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Birthday"/>
+            <TextView
+                android:id="@+id/birthDayTv"
+                android:layout_width="wrap_content"
+                android:textSize="18sp"
+                android:textColor="@color/black"
+                android:paddingTop="@dimen/padding_top_small"
+                android:layout_height="wrap_content"
+                android:text="12/03/1999"/>
+        </LinearLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/setting"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingLeft="@dimen/padding_left_normal"
+        android:paddingRight="@dimen/padding_right_normal"
+        app:layout_constraintTop_toBottomOf="@id/profile">
+
+        <TextView
+            android:id="@+id/line"
+            android:layout_width="match_parent"
+            android:layout_marginTop="@dimen/margin_top_normal"
+            android:layout_height="18px"
+            android:background="#DDDDDD"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/btnLogout"
+            android:layout_marginTop="@dimen/padding_top_normal"
+            android:drawableLeft="@drawable/logout_24"
+            android:drawablePadding="@dimen/padding_right_normal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="18sp"
+            android:text="Logout"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/line" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

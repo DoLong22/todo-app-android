@@ -44,7 +44,7 @@
             android:layout_marginLeft="16dp"
             android:layout_marginTop="90dp"
             android:layout_marginRight="16dp"
-            android:background="#FFF"
+            android:background="@drawable/custom_layout_todo"
             android:orientation="vertical"
             android:paddingTop="22dp"
             android:paddingBottom="22dp">
@@ -69,7 +69,7 @@
                     android:id="@+id/title"
                     android:layout_width="match_parent"
                     android:layout_height="55dp"
-                    android:background="#F8F8F8"
+                    android:background="@drawable/custom_input"
                     android:hint="What You Do?"
                     android:inputType="text"
                     android:paddingLeft="12dp"
@@ -98,7 +98,7 @@
                     android:id="@+id/des"
                     android:layout_width="match_parent"
                     android:layout_height="55dp"
-                    android:background="#F8F8F8"
+                    android:background="@drawable/custom_input"
                     android:hint="How to?"
                     android:inputType="text"
                     android:maxLength="25"
@@ -128,7 +128,7 @@
                     android:id="@+id/date"
                     android:layout_width="match_parent"
                     android:layout_height="55dp"
-                    android:background="#F8F8F8"
+                    android:background="@drawable/custom_input"
                     android:clickable="true"
                     android:focusable="true"
                     android:hint="When will?"
@@ -142,24 +142,30 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="16dp"
+                android:layout_gravity="center_horizontal"
                 android:layout_marginTop="20dp"
                 android:layout_marginRight="16dp"
-                android:orientation="vertical">
+                android:orientation="vertical"
+                android:gravity="center_vertical">
 
                 <TextView
                     android:id="@+id/label"
-                    android:layout_width="match_parent"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="10dp"
                     android:text="Label"
                     android:textColor="@color/colorPrimaryDark"
                     android:textSize="18sp" />
+
                 <Spinner
                     android:id="@+id/labelSpinner"
+                    android:background="@drawable/custom_input"
+                    android:textColorHint="#B5B5B5"
+                    android:padding="@dimen/padding_top_small"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:entries="@array/lable"
-                    android:textColor="@color/colorPrimaryDark" />
+                    android:textColor="#B5B5B5" />
             </LinearLayout>
         </LinearLayout>
     </ScrollView>
@@ -177,9 +183,10 @@
         <Button
             android:id="@+id/btnCancel"
             android:layout_width="@dimen/button_width_normal"
-            android:layout_height="wrap_content"
+            android:layout_height="@dimen/button_height_normal"
             android:layout_marginStart="48dp"
             android:layout_marginEnd="48dp"
+            android:background="@drawable/custom_input"
             android:text="Cancel"
             android:backgroundTint="@color/main"
             app:layout_constraintStart_toStartOf="parent"
@@ -188,9 +195,10 @@
         <Button
             android:id="@+id/btnSaveMission"
             android:layout_width="@dimen/button_width_normal"
-            android:layout_height="wrap_content"
+            android:layout_height="@dimen/button_height_normal"
             android:layout_marginStart="48dp"
             android:layout_marginEnd="48dp"
+            android:background="@drawable/custom_input"
             android:text="Update"
             android:backgroundTint="@color/main"
             app:layout_constraintEnd_toEndOf="parent"

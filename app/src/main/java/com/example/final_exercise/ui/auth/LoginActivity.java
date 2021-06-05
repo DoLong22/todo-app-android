@@ -14,6 +14,7 @@ import android.widget.Toast;
 import com.example.final_exercise.R;
 import com.example.final_exercise.databinding.ActivityLoginBinding;
 import com.example.final_exercise.model.User;
+import com.example.final_exercise.service.FirebaseService;
 import com.example.final_exercise.ui.MainActivity;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
@@ -38,7 +39,7 @@ public class LoginActivity extends AppCompatActivity {
     private static final int RC_SIGN_IN = 9001;
     private static final String TAG = "GoogleActivity";
     private FirebaseAuth mAuth;
-    private DatabaseReference myRef;
+    private FirebaseService fbService;
     private GoogleSignInClient mGoogleSignInClient;
     private ActivityLoginBinding biding;
     private FirebaseUser user;
@@ -54,6 +55,7 @@ public class LoginActivity extends AppCompatActivity {
                 .requestEmail()
                 .build();
         mGoogleSignInClient = GoogleSignIn.getClient(this, gso);
+        fbService = FirebaseService.getInstance();
         mAuth = FirebaseAuth.getInstance();
         setOnClickGgSignBtn();
         biding.loginBtn.setOnClickListener(v -> {
@@ -114,7 +116,7 @@ public class LoginActivity extends AppCompatActivity {
     @Override
     public void onStart() {
         super.onStart();
-        FirebaseUser currentUser = mAuth.getCurrentUser();
+//        FirebaseUser currentUser = mAuth.getCurrentUser();
     }
 
     @Override
@@ -142,7 +144,7 @@ public class LoginActivity extends AppCompatActivity {
                     public void onComplete(@NonNull Task<AuthResult> task) {
                         if (task.isSuccessful()) {
                             Log.d(TAG, "signInWithCredential:success");
-                            FirebaseUser user = mAuth.getCurrentUser();
+                             user = mAuth.getCurrentUser();
                         } else {
                             Log.w(TAG, "signInWithCredential:failure", task.getException());
                         }
@@ -151,10 +153,7 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void renderNextActivity() {
-        myRef = FirebaseDatabase.
-                getInstance("https://android-excersice-default-rtdb.asia-southeast1.firebasedatabase.app/")
-                .getReference();
-        myRef.child("users").child(user.getUid()).get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
+        fbService.getMyRef().child("users").child(user.getUid()).get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
             @Override
             public void onComplete(@NonNull Task<DataSnapshot> task) {
                 if (!task.isSuccessful()) {
