@@ -59,7 +59,7 @@ public class UpdateMissionActivity extends AppCompatActivity {
             String compareValue = myTodo.getLabel();
             binding.labelSpinner.setSelection(getIndex(binding.labelSpinner, compareValue));
             reference = FirebaseDatabase.getInstance("https://android-excersice-default-rtdb.asia-southeast1.firebasedatabase.app/")
-                    .getReference().child("my-todo-" + user.getUid())
+                    .getReference().child("todos").child("my-todo-" + user.getUid())
                     .child("mission" + myTodo.getKey());
             setOnclickSaveBtn(myTodo);
             setOnClickSelectDate();

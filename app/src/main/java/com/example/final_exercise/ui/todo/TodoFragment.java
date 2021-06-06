@@ -129,7 +129,7 @@ public class TodoFragment extends Fragment {
 
     public void getMission() {
         binding.todoListView.setLayoutManager(new LinearLayoutManager(getContext()));
-        Query myQuery = fbService.getMyRef()
+        Query myQuery = fbService.getMyRef().child("todos")
                 .child("my-todo-" + fbService.getUidUser())
                 .orderByKey();
         myQuery.addValueEventListener(new ValueEventListener() {

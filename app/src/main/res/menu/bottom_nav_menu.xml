@@ -2,6 +2,9 @@
     <item android:title="Todo's"
         android:icon="@drawable/ic_baseline_list_24"
         android:id="@+id/todos"/>
+    <item android:title="Tracking"
+        android:icon="@drawable/bar_chart_24"
+        android:id="@+id/tracking"/>
     <item android:title="Profile"
         android:icon="@drawable/ic_baseline_contacts_24"
         android:id="@+id/profile"/>

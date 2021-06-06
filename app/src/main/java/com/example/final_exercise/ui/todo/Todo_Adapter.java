@@ -1,6 +1,8 @@
 package com.example.final_exercise.ui.todo;
 
+import android.app.AlarmManager;
 import android.app.AlertDialog;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -22,6 +24,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.final_exercise.R;
 import com.example.final_exercise.model.Mission;
+import com.example.final_exercise.notification.MyNotification;
 import com.example.final_exercise.service.FirebaseService;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -30,15 +33,16 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
+import java.util.Calendar;
 import java.util.List;
 
 public class Todo_Adapter extends
         RecyclerView.Adapter<Todo_Adapter.TodoViewHolder> {
     Context mContext;
     List<Mission> myTodoList;
-    private String uidUser;
+    private final String uidUser;
     private final DatabaseReference myRef;
-    private FirebaseService fbService;
+    private final FirebaseService fbService;
 
     public Todo_Adapter(Context mContext, List<Mission> myTodoList, DatabaseReference myRef, String uidUser) {
         this.mContext = mContext;
@@ -66,7 +70,7 @@ public class Todo_Adapter extends
         }
         holder.missionTitle.setText(myTodoList.get(position).getTitle());
         holder.missionDes.setText(myTodoList.get(position).getLabel());
-        switch (myTodoList.get(position).getLabel()){
+        switch (myTodoList.get(position).getLabel()) {
             case "Very Important":
                 holder.missionDes.setTextColor(Color.parseColor("#750099"));
                 break;
@@ -90,36 +94,39 @@ public class Todo_Adapter extends
             }
         });
         holder.checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @RequiresApi(api = Build.VERSION_CODES.KITKAT)
             @Override
             public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
 
                 myTodoList.get(position).setDone(!myTodoList.get(position).isDone());
 
                 if (b) {
+                    cancelAlarm(Integer.parseInt(myTodoList.get(position).getKey()));
                     holder.missionTitle.setPaintFlags(holder.missionTitle.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
                 } else {
+                    startAlarm(convertToCalendar(myTodoList.get(position).getDate()),myTodoList.get(position));
                     holder.missionTitle.setPaintFlags(0);
                 }
-                myRef.child("my-todo-" + uidUser)
+                myRef.child("todos").child("my-todo-" + uidUser)
                         .child("mission" + myTodoList.get(position).getKey())
                         .setValue(myTodoList.get(position))
                         .addOnSuccessListener(new OnSuccessListener<Void>() {
-                    @Override
-                    public void onSuccess(Void aVoid) {
-                    }
-                }).addOnFailureListener(new OnFailureListener() {
+                            @Override
+                            public void onSuccess(Void aVoid) {
+                            }
+                        }).addOnFailureListener(new OnFailureListener() {
                     @Override
                     public void onFailure(@NonNull Exception e) {
                     }
                 });
             }
         });
-       holder.btnDelete.setOnClickListener(new View.OnClickListener() {
-           @Override
-           public void onClick(View v) {
-               deleteOne(position);
-           }
-       });
+        holder.btnDelete.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                deleteAlert(position);
+            }
+        });
     }
 
     @Override
@@ -129,7 +136,7 @@ public class Todo_Adapter extends
 
     public class TodoViewHolder extends RecyclerView.ViewHolder {
         TextView missionTitle, missionDes, missionDate;
-        ImageButton editBtn,btnDelete;
+        ImageButton editBtn, btnDelete;
         CheckBox checkBox;
 
         public TodoViewHolder(@NonNull View itemView) {
@@ -142,7 +149,8 @@ public class Todo_Adapter extends
             btnDelete = itemView.findViewById(R.id.btnDelete);
         }
     }
-    private void deleteOne(int position) {
+
+    private void deleteAlert(int position) {
         AlertDialog.Builder alert = new AlertDialog.Builder(mContext);
         alert.setTitle("Do you want to delete this task");
         alert.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
@@ -159,21 +167,56 @@ public class Todo_Adapter extends
         });
         alert.show();
     }
-    private void deleteTask(int position){
-        fbService.getMyRef().child("my-todo-" + uidUser)
+
+    private void deleteTask(int position) {
+        fbService.getMyRef().child("todos").child("my-todo-" + uidUser)
                 .child("mission" + myTodoList.get(position).getKey()).removeValue()
                 .addOnSuccessListener(new OnSuccessListener<Void>() {
-            @Override
-            public void onSuccess(Void aVoid) {
-                Toast.makeText(mContext,
-                        "Delete success.",Toast.LENGTH_SHORT).show();
-            }
-        }).addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onSuccess(Void aVoid) {
+                        Toast.makeText(mContext,
+                                "Delete success.", Toast.LENGTH_SHORT).show();
+                    }
+                }).addOnFailureListener(new OnFailureListener() {
             @Override
             public void onFailure(@NonNull Exception e) {
                 Toast.makeText(mContext,
-                        "Delete failed.",Toast.LENGTH_SHORT).show();
+                        "Delete failed.", Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    private Calendar convertToCalendar(String strCal) {
+        Calendar calendar = Calendar.getInstance();
+        String[] calSplit = strCal.split(" ");
+        String[] timeSplit = calSplit[0].split(":");
+        String[] dateSplit = calSplit[1].split("/");
+        int date = Integer.parseInt(dateSplit[0]);
+        int month = Integer.parseInt(dateSplit[1]) - 1;
+        int year = Integer.parseInt(dateSplit[2]);
+        int hourOfDay = Integer.parseInt(timeSplit[0]);
+        int minute = Integer.parseInt(timeSplit[1]);
+        calendar.set(year, month, date, hourOfDay, minute);
+        return calendar;
+    }
+    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
+    private void startAlarm(Calendar c, Mission mission) {
+        AlarmManager alarmManager = (AlarmManager) mContext.getSystemService(Context.ALARM_SERVICE);
+        Intent intent = new Intent(mContext, MyNotification.class);
+        intent.putExtra("myAction", "mDoNotify");
+        intent.putExtra("Title", mission.getTitle());
+        intent.putExtra("Description", mission.getDescription());
+
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(mContext, Integer.parseInt(mission.getKey()), intent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+        alarmManager.setExact(AlarmManager.RTC_WAKEUP, c.getTimeInMillis(), pendingIntent);
+    }
+    private void cancelAlarm(int keyAlarm){
+        AlarmManager alarmManager = (AlarmManager) mContext.getSystemService(Context.ALARM_SERVICE);
+        Intent intent = new Intent(mContext, MyNotification.class);
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(mContext,
+                keyAlarm, intent,
+                PendingIntent.FLAG_UPDATE_CURRENT);
+        alarmManager.cancel(pendingIntent);
     }
 }
