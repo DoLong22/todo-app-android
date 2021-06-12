@@ -36,7 +36,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(binding.getRoot());
         navigationView = findViewById(R.id.navigation);
         adapter = new ViewPagerAdapter(getSupportFragmentManager(),
-                2);
+                3,3);
         binding.viewPager.setAdapter(adapter);
         binding.viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
@@ -50,6 +50,9 @@ public class MainActivity extends AppCompatActivity {
                         navigationView.getMenu().findItem(R.id.todos).setChecked(true);
                         break;
                     case 1:
+                        navigationView.getMenu().findItem(R.id.tracking).setChecked(true);
+                        break;
+                    case 2:
                         navigationView.getMenu().findItem(R.id.profile).setChecked(true);
                         break;
                 }
@@ -65,8 +68,11 @@ public class MainActivity extends AppCompatActivity {
                     case R.id.todos:
                         binding.viewPager.setCurrentItem(0);
                         break;
-                    case R.id.profile:
+                    case R.id.tracking:
                         binding.viewPager.setCurrentItem(1);
+                        break;
+                    case R.id.profile:
+                        binding.viewPager.setCurrentItem(2);
                         break;
                 }
                 return true;
@@ -78,9 +84,9 @@ public class MainActivity extends AppCompatActivity {
     public class ViewPagerAdapter extends FragmentStatePagerAdapter {
         private final int pageNum;
 
-        public ViewPagerAdapter(@NonNull FragmentManager fm, int behavior) {
+        public ViewPagerAdapter(@NonNull FragmentManager fm, int behavior, int pageNum) {
             super(fm, behavior);
-            this.pageNum = behavior;
+            this.pageNum = pageNum;
         }
 
         @NonNull
@@ -89,9 +95,9 @@ public class MainActivity extends AppCompatActivity {
             switch (position) {
                 case 0:
                     return new TodoFragment();
-//                case 1:
-//                    return new TrackingFragment();
                 case 1:
+                    return new TrackingFragment();
+                case 2:
                     return new ProfileFragment();
                 default:
                     return new TodoFragment();

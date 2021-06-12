@@ -7,14 +7,17 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.app.AlarmManager;
 import android.app.DatePickerDialog;
 import android.app.PendingIntent;
+import android.app.TimePickerDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.DatePicker;
 import android.widget.Spinner;
+import android.widget.TimePicker;
 import android.widget.Toast;
 
 import com.example.final_exercise.R;
@@ -36,11 +39,12 @@ import java.util.Random;
 public class UpdateMissionActivity extends AppCompatActivity {
     private DatabaseReference reference;
     private FirebaseUser user;
-    private int mYear, mMonth, mDay;
+    private int mYear, mMonth, mDay,mHourOfDay, mMinute;
     private final Integer TodoNum = new Random().nextInt();
     private final String keytodo = Integer.toString(TodoNum);
     private ActivityUpdateMissionBinding binding;
     private Calendar calendar;
+    private boolean isSetAlarm = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,7 +59,9 @@ public class UpdateMissionActivity extends AppCompatActivity {
             final Mission myTodo = (Mission) intent.getSerializableExtra("todo");
             binding.title.setText(myTodo.getTitle());
             binding.des.setText(myTodo.getDescription());
-            binding.date.setText(myTodo.getDate());
+            String[] calSplit = myTodo.getDate().split(" ");
+            binding.time.setText(calSplit[0]);
+            binding.date.setText(calSplit[1]);
             String compareValue = myTodo.getLabel();
             binding.labelSpinner.setSelection(getIndex(binding.labelSpinner, compareValue));
             reference = FirebaseDatabase.getInstance("https://android-excersice-default-rtdb.asia-southeast1.firebasedatabase.app/")
@@ -63,6 +69,7 @@ public class UpdateMissionActivity extends AppCompatActivity {
                     .child("mission" + myTodo.getKey());
             setOnclickSaveBtn(myTodo);
             setOnClickSelectDate();
+            setOnClickSelectTime();
             setOnClickCancelBtn();
         }
     }
@@ -86,8 +93,9 @@ public class UpdateMissionActivity extends AppCompatActivity {
                     public void onSuccess(Void aVoid) {
                         Toast.makeText(getApplicationContext(),
                                 "Update success.", Toast.LENGTH_SHORT).show();
-                        if (calendar != null) {
+                        if (isSetAlarm) {
                             startAlarm(calendar, editTodo);
+                            mission.setTimeInMills(calendar.getTimeInMillis());
                         }
                         finish();
                     }
@@ -111,6 +119,27 @@ public class UpdateMissionActivity extends AppCompatActivity {
         });
     }
 
+    private void setOnClickSelectTime() {
+        binding.time.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mHourOfDay = calendar.get(Calendar.HOUR_OF_DAY);
+                mMinute = calendar.get(Calendar.MINUTE);
+                TimePickerDialog timePickerDialog = new TimePickerDialog(UpdateMissionActivity.this, new TimePickerDialog.OnTimeSetListener() {
+                    @Override
+                    public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
+                        binding.time.setText(hourOfDay + ":" + minute);
+                        calendar.set(Calendar.HOUR_OF_DAY, hourOfDay);
+                        calendar.set(Calendar.MINUTE, minute);
+                        calendar.set(Calendar.SECOND, 0);
+                        isSetAlarm = true;
+                    }
+                }, mHourOfDay, mMinute, true);
+                timePickerDialog.show();
+            }
+        });
+    }
+
     private void setOnClickSelectDate() {
         binding.date.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -125,7 +154,8 @@ public class UpdateMissionActivity extends AppCompatActivity {
                             public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
                                 binding.date.setText(dayOfMonth + "/" + (month + 1) + "/" + year);
                                 calendar.setTimeInMillis(System.currentTimeMillis());
-                                calendar.set(mYear, mMonth, mDay);
+                                calendar.set(year, month, dayOfMonth);
+                                isSetAlarm = true;
                             }
                         }, mYear, mMonth, mDay);
                 datePickerDialog.show();
@@ -150,10 +180,7 @@ public class UpdateMissionActivity extends AppCompatActivity {
         intent.putExtra("Title", mission.getTitle());
         intent.putExtra("Description", mission.getDescription());
 
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 1, intent, 0);
-//        if (c.before(Calendar.getInstance())) {
-//            c.add(Calendar.DATE, 1);
-//        }
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(this, Integer.parseInt(mission.getKey()), intent, PendingIntent.FLAG_UPDATE_CURRENT);
         alarmManager.setExact(AlarmManager.RTC_WAKEUP, c.getTimeInMillis(), pendingIntent);
     }
 

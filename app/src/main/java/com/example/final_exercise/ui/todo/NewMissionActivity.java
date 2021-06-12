@@ -72,8 +72,7 @@ public class NewMissionActivity extends AppCompatActivity {
                 mission.setLevel(getLevel(label));
                 if (isSetAlarm) {
                     startAlarm(calendar, mission);
-                    Log.d("alarm_hour:",String.valueOf(calendar.get(Calendar.HOUR_OF_DAY)));
-                    Log.d("alarm_minute:",String.valueOf(calendar.get(Calendar.MINUTE)));
+                    mission.setTimeInMills(calendar.getTimeInMillis());
                 }
                 reference.setValue(mission);
                 finish();
